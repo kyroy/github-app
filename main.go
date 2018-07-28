@@ -8,9 +8,29 @@ import (
 	"fmt"
 	"context"
 	"github.com/bradleyfalzon/ghinstallation"
-)
+				)
+
+func test() {
+	fmt.Println("checking with", 15308, 262390)
+	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, 15308, 262390, "xkyroy-s-testapp.2018-07-28.private-key.pem")
+	if err != nil {
+		logrus.Errorf("failed to read key: %v", err)
+		return
+	}
+	client := github.NewClient(&http.Client{Transport: itr})
+
+	a, b, c := client.Checks.GetCheckSuite(context.Background(), "Kyroy", "testrepo", 7719827)
+	fmt.Println("aaa", a, b, c)
+
+	//token, response, err := client.Apps.CreateInstallationToken(context.Background(), 262390)
+	//fmt.Println("CreateInstallationToken", token, response, err)
+	//
+	//installations, response, err := client.Apps.ListInstallations(context.Background(), &github.ListOptions{})
+	//fmt.Println("ListInstallations", installations, response, err)
+}
 
 func main() {
+	//test()
 	http.HandleFunc("/", handler)
 
 	logrus.Infof("listening on 8080")
