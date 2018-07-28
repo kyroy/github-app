@@ -21,16 +21,10 @@ func test() {
 
 	a, b, c := client.Checks.GetCheckSuite(context.Background(), "Kyroy", "testrepo", 7719827)
 	fmt.Println("aaa", a, b, c)
-
-	//token, response, err := client.Apps.CreateInstallationToken(context.Background(), 262390)
-	//fmt.Println("CreateInstallationToken", token, response, err)
-	//
-	//installations, response, err := client.Apps.ListInstallations(context.Background(), &github.ListOptions{})
-	//fmt.Println("ListInstallations", installations, response, err)
 }
 
 func main() {
-	//test()
+	test()
 	http.HandleFunc("/", handler)
 
 	logrus.Infof("listening on 8080")
