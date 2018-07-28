@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"github.com/sirupsen/logrus"
 	"fmt"
+	"io/ioutil"
 )
 
 func main() {
@@ -30,6 +31,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	case "pull_request":
 		pullRequest(w, r)
 		return
+	case "check_suite":
+		check_suite(w, r)
+		return
 	default:
 		logrus.Errorf("unknown event: %s", event)
 	}
@@ -51,11 +55,23 @@ func pullRequest(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("evt.PullRequest.Head.Label", *evt.PullRequest.Head.Label)
 	fmt.Println("evt.PullRequest.Head.Ref", *evt.PullRequest.Head.Ref)
 	fmt.Println("evt.PullRequest.Head.SHA", *evt.PullRequest.Head.SHA)
-	fmt.Println("evt.Repo.Name", *evt.Repo.Name)
-	fmt.Println("evt.Repo.ID", *evt.Repo.ID)
-	fmt.Println("evt.Repo.CloneURL", *evt.Repo.CloneURL)
-	fmt.Println("evt.Repo.FullName", *evt.Repo.FullName)
-	fmt.Println("evt.Repo.GitURL", *evt.Repo.GitURL)
-	fmt.Println("evt.Repo.Language", *evt.Repo.Language)
+	if evt.Repo != nil {
+		fmt.Println("evt.Repo.Name", *evt.Repo.Name)
+		fmt.Println("evt.Repo.ID", *evt.Repo.ID)
+		fmt.Println("evt.Repo.CloneURL", *evt.Repo.CloneURL)
+		fmt.Println("evt.Repo.FullName", *evt.Repo.FullName)
+		fmt.Println("evt.Repo.GitURL", *evt.Repo.GitURL)
+	}
+	w.WriteHeader(200)
+}
 
+func check_suite(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		logrus.Errorf("failed to read body: %v", err)
+		w.WriteHeader(500)
+		return
+	}
+	fmt.Printf("check_suite: %s", body)
+	w.WriteHeader(200)
 }
