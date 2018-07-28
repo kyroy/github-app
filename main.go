@@ -12,7 +12,7 @@ import (
 
 func test() {
 	fmt.Println("checking with", 15308, 262390)
-	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, 15308, 262390, "xkyroy-s-testapp.2018-07-28.private-key.pem")
+	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, 15308, 262390, "kyroy-s-testapp.2018-07-28.private-key.pem")
 	if err != nil {
 		logrus.Errorf("failed to read key: %v", err)
 		return
