@@ -105,6 +105,9 @@ func check_suite(w http.ResponseWriter, r *http.Request) {
 	// Use installation transport with client.
 	client := github.NewClient(&http.Client{Transport: itr})
 
+	token, response, err := client.Apps.CreateInstallationToken(context.Background(), evt.Installation.GetID())
+	fmt.Println("CreateInstallationToken", token, response, err)
+
 	switch status := evt.CheckSuite.GetStatus(); status {
 	case "queued":
 		checkRun, response, err := client.Checks.CreateCheckRun(context.Background(), evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), github.CreateCheckRunOptions{
