@@ -188,7 +188,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch event {
-	case "handleSuite":
+	case "check_suite":
 		handleSuite(w, r)
 		return
 	default:
