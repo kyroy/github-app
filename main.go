@@ -94,9 +94,11 @@ func check_suite(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("evt.CheckSuite.Repository %v\n", *evt.CheckSuite.Repository)
 	}
 
-	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, 1, 99, "kyroy-s-testapp.2018-07-28.private-key.pem")
+	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, int(evt.CheckSuite.App.GetID()), int(evt.Installation.GetID()), "kyroy-s-testapp.2018-07-28.private-key.pem")
 	if err != nil {
-		// Handle error.
+		logrus.Errorf("failed to read key: %v", err)
+		w.WriteHeader(500)
+		return
 	}
 
 	// Use installation transport with client.
