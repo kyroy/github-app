@@ -2,11 +2,12 @@ package main
 
 import (
 	"encoding/json"
-		"github.com/google/go-github/github"
+	"github.com/google/go-github/github"
 	"net/http"
 	"github.com/sirupsen/logrus"
 	"fmt"
 	"context"
+	"github.com/bradleyfalzon/ghinstallation"
 )
 
 func main() {
@@ -92,6 +93,14 @@ func check_suite(w http.ResponseWriter, r *http.Request) {
 	if evt.CheckSuite.Repository != nil {
 		fmt.Printf("evt.CheckSuite.Repository %v\n", *evt.CheckSuite.Repository)
 	}
+
+	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, 1, 99, "kyroy-s-testapp.2018-07-28.private-key.pem")
+	if err != nil {
+		// Handle error.
+	}
+
+	// Use installation transport with client.
+	client := github.NewClient(&http.Client{Transport: itr})
 
 	client := github.NewClient(nil)
 	switch status := evt.CheckSuite.GetStatus(); status {

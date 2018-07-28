@@ -2,6 +2,18 @@
 
 
 [[projects]]
+  name = "github.com/bradleyfalzon/ghinstallation"
+  packages = ["."]
+  revision = "3f4e9b1898e6b65e31827d5dccb97d91d59feaa3"
+  version = "v0.1.2"
+
+[[projects]]
+  name = "github.com/dgrijalva/jwt-go"
+  packages = ["."]
+  revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
+  version = "v3.2.0"
+
+[[projects]]
   name = "github.com/google/go-github"
   packages = ["github"]
   revision = "b47a3f75fc03ed477be4f04813180deb31407570"
@@ -36,6 +48,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2867705b83fd6f292e9d0822c56940ac626f02f513b140e87e8b8bce216840b8"
+  inputs-digest = "e69785b5587dfc098c816b3d7422cea286f0ef0a8f3af8da5c9b8be2dbf7abce"
   solver-name = "gps-cdcl"
   solver-version = 1
