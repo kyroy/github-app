@@ -84,7 +84,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		if err := handleSuite(client, evt); err != nil {
 			logrus.Errorf("failed to handle suite: %v", err)
 		}
-		return
 	default:
 		logrus.Errorf("unknown event: %s", event)
 	}
@@ -162,6 +161,5 @@ func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 			}
 		}(ctx)
 	}
-
-	w.WriteHeader(200)
+	return nil
 }
