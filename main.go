@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"github.com/sirupsen/logrus"
 	"fmt"
-	)
+	"context"
+)
 
 func main() {
 	http.HandleFunc("/", handler)
@@ -91,6 +92,27 @@ func check_suite(w http.ResponseWriter, r *http.Request) {
 	if evt.CheckSuite.Repository != nil {
 		fmt.Printf("evt.CheckSuite.Repository %v\n", *evt.CheckSuite.Repository)
 	}
+
+	client := github.NewClient(nil)
+	switch status := evt.CheckSuite.GetStatus(); status {
+	case "queued":
+		checkRun, response, err := client.Checks.CreateCheckRun(context.Background(), evt.Repo.Owner.GetName(), evt.Repo.GetName(), github.CreateCheckRunOptions{
+			Name: "first suite", // *
+			HeadBranch: evt.CheckSuite.GetHeadBranch(), // *
+			HeadSHA: evt.CheckSuite.GetHeadSHA(), // *
+			Status: github.String("in_progress"),
+		})
+		fmt.Println("checkRun", checkRun)
+		fmt.Println("response", response)
+		fmt.Println("err", err)
+	//case "in_progress":
+	//case "completed":
+		// output
+	default:
+		fmt.Printf("unhandled check suite status: %s", status)
+	}
+
+
 
 	w.WriteHeader(200)
 }
