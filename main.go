@@ -96,7 +96,7 @@ func check_suite(w http.ResponseWriter, r *http.Request) {
 	client := github.NewClient(nil)
 	switch status := evt.CheckSuite.GetStatus(); status {
 	case "queued":
-		checkRun, response, err := client.Checks.CreateCheckRun(context.Background(), evt.Repo.Owner.GetName(), evt.Repo.GetName(), github.CreateCheckRunOptions{
+		checkRun, response, err := client.Checks.CreateCheckRun(context.Background(), evt.CheckSuite.Repository.GetOwner().GetName(), evt.CheckSuite.Repository.GetName(), github.CreateCheckRunOptions{
 			Name: "first suite", // *
 			HeadBranch: evt.CheckSuite.GetHeadBranch(), // *
 			HeadSHA: evt.CheckSuite.GetHeadSHA(), // *
