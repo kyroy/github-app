@@ -1,4 +1,5 @@
 vendor
+*.pem
 
 # IntelliJ project files
 .idea

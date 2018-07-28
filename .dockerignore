@@ -1,0 +1,5 @@
+.*
+vendor
+Dockerfile
+*.pem
+run.sh
