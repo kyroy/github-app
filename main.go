@@ -108,6 +108,9 @@ func check_suite(w http.ResponseWriter, r *http.Request) {
 	token, response, err := client.Apps.CreateInstallationToken(context.Background(), evt.Installation.GetID())
 	fmt.Println("CreateInstallationToken", token, response, err)
 
+	installations, response, err := client.Apps.ListInstallations(context.Background(), &github.ListOptions{})
+	fmt.Println("ListInstallations", installations, response, err)
+
 	switch status := evt.CheckSuite.GetStatus(); status {
 	case "queued":
 		checkRun, response, err := client.Checks.CreateCheckRun(context.Background(), evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), github.CreateCheckRunOptions{
