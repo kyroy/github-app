@@ -4,20 +4,13 @@
 [[projects]]
   name = "github.com/google/go-github"
   packages = ["github"]
-  revision = "e48060a28fac52d0f1cb758bc8b87c07bac4a87d"
-  version = "v15.0.0"
+  revision = "b47a3f75fc03ed477be4f04813180deb31407570"
 
 [[projects]]
   branch = "master"
   name = "github.com/google/go-querystring"
   packages = ["query"]
   revision = "53e6ce116135b80d037921a7fdd5138cf32d7a8a"
-
-[[projects]]
-  name = "github.com/rjz/githubhook"
-  packages = ["."]
-  revision = "d5f019004f0a15c1c9be5ac3034071ba0dff5832"
-  version = "v0.0.1"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
@@ -43,6 +36,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "60bfa59d9c0407e066449a268955cce1e4b4eb8076a37002f1f3ddc3f34c77af"
+  inputs-digest = "2867705b83fd6f292e9d0822c56940ac626f02f513b140e87e8b8bce216840b8"
   solver-name = "gps-cdcl"
   solver-version = 1
