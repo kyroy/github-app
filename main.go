@@ -62,7 +62,28 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	switch event {
 	case "check_suite":
-		handleSuite(w, r)
+		var evt github.CheckSuiteEvent
+		if err := json.NewDecoder(r.Body).Decode(&evt); err != nil {
+			logrus.Errorf("failed to unmarshal payload: %v", err)
+			w.WriteHeader(500)
+			return
+		}
+
+		fmt.Println("checking with", int(evt.CheckSuite.App.GetID()), int(evt.Installation.GetID()))
+		itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, int(evt.CheckSuite.App.GetID()), int(evt.Installation.GetID()), "kyroy-s-testapp.2018-07-28.private-key.pem")
+		if err != nil {
+			logrus.Errorf("failed to read key: %v", err)
+			w.WriteHeader(500)
+			return
+		}
+
+		// Use installation transport with client.
+		client := github.NewClient(&http.Client{Transport: itr})
+
+
+		if err := handleSuite(client, evt); err != nil {
+			logrus.Errorf("failed to handle suite: %v", err)
+		}
 		return
 	default:
 		logrus.Errorf("unknown event: %s", event)
@@ -70,35 +91,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(400)
 }
 
-func handleSuite(w http.ResponseWriter, r *http.Request) {
-	var evt github.CheckSuiteEvent
-	if err := json.NewDecoder(r.Body).Decode(&evt); err != nil {
-		logrus.Errorf("failed to unmarshal payload: %v", err)
-		w.WriteHeader(500)
-		return
-	}
-
-	if evt.CheckSuite.GetStatus() != "evt.CheckSuite.GetStatus()" {
+func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
+	if evt.CheckSuite.GetStatus() != "queued" {
 		logrus.Infof("unhandled check suite status: %s", evt.CheckSuite.GetStatus())
-		w.WriteHeader(200)
-		return
+		return nil
 	}
-
-	fmt.Println("checking with", int(evt.CheckSuite.App.GetID()), int(evt.Installation.GetID()))
-	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, int(evt.CheckSuite.App.GetID()), int(evt.Installation.GetID()), "kyroy-s-testapp.2018-07-28.private-key.pem")
-	if err != nil {
-		logrus.Errorf("failed to read key: %v", err)
-		w.WriteHeader(500)
-		return
-	}
-
-	// Use installation transport with client.
-	client := github.NewClient(&http.Client{Transport: itr})
 
 	config, err := config2.Download(client, evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), evt.CheckSuite.GetHeadBranch())
 	if err != nil {
 		// TODO
-		return
+		return fmt.Errorf("failed to download config: %v", err)
 	}
 
 	runIDs := make(map[string]map[string]int64)
