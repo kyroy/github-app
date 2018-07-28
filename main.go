@@ -78,15 +78,19 @@ func check_suite(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		return
 	}
-	fmt.Printf("evt.CheckSuite.ID %v\n", evt.CheckSuite.ID)
-	fmt.Printf("evt.CheckSuite.App %v\n", evt.CheckSuite.App)
-	fmt.Printf("evt.CheckSuite.Conclusion %v\n", evt.CheckSuite.Conclusion)
-	fmt.Printf("evt.CheckSuite.HeadBranch %v\n", evt.CheckSuite.HeadBranch)
-	fmt.Printf("evt.CheckSuite.HeadSHA %v\n", evt.CheckSuite.HeadSHA)
+	fmt.Printf("evt.CheckSuite.ID %v\n", *evt.CheckSuite.ID)
+	fmt.Printf("evt.CheckSuite.App %v\n", *evt.CheckSuite.App)
+	fmt.Printf("evt.CheckSuite.HeadBranch %v\n", *evt.CheckSuite.HeadBranch)
+	fmt.Printf("evt.CheckSuite.HeadSHA %v\n", *evt.CheckSuite.HeadSHA)
 	fmt.Printf("evt.CheckSuite.PullRequests %v\n", evt.CheckSuite.PullRequests)
-	fmt.Printf("evt.CheckSuite.Repository %v\n", evt.CheckSuite.Repository)
-	fmt.Printf("evt.CheckSuite.Status %v\n", evt.CheckSuite.Status)
-	fmt.Printf("evt.CheckSuite.URL %v\n", evt.CheckSuite.URL)
+	fmt.Printf("evt.CheckSuite.Status %v\n", *evt.CheckSuite.Status)
+	fmt.Printf("evt.CheckSuite.URL %v\n", *evt.CheckSuite.URL)
+	if evt.CheckSuite.Conclusion != nil {
+		fmt.Printf("evt.CheckSuite.Conclusion %v\n", *evt.CheckSuite.Conclusion)
+	}
+	if evt.CheckSuite.Repository != nil {
+		fmt.Printf("evt.CheckSuite.Repository %v\n", *evt.CheckSuite.Repository)
+	}
 
 	w.WriteHeader(200)
 }
