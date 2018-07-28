@@ -8,7 +8,8 @@
 
 docker build -t github-app . \
     && (
-        docker rm -f aws-monitor \
-        ; docker run --rm -d -p 8080:8080 -v $PWD/kyroy-s-testapp.2018-07-28.private-key.pem:/kyroy-s-testapp.2018-07-28.private-key.pem --name github-app github-app \
-        ; docker logs -f github-app
+        docker rm -f github-app \
+        ; docker run --rm -p 8080:8080 -v $PWD/kyroy-s-testapp.2018-07-28.private-key.pem:/kyroy-s-testapp.2018-07-28.private-key.pem --name github-app github-app
+#        ; docker run --rm -d -p 8080:8080 -v $PWD/kyroy-s-testapp.2018-07-28.private-key.pem:/kyroy-s-testapp.2018-07-28.private-key.pem --name github-app github-app \
+#        ; docker logs -f github-app
     )
