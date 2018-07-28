@@ -8,11 +8,19 @@ import (
 	"fmt"
 	"context"
 	"github.com/bradleyfalzon/ghinstallation"
-				)
+	"io/ioutil"
+)
 
 func test() {
 	fmt.Println("checking with", 15308, 262390)
-	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, 15308, 262390, "kyroy-s-testapp.2018-07-28.private-key.pem")
+	//itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, 15308, 262390, "kyroy-s-testapp.2018-07-28.private-key.pem")
+	privateKey, err := ioutil.ReadFile("kyroy-s-testapp.2018-07-28.private-key.pem")
+	if err != nil {
+		logrus.Errorf("could not read private key: %s", err)
+		return
+	}
+	fmt.Printf("privatekey: %s", privateKey)
+	itr, err := ghinstallation.New(http.DefaultTransport, 15308, 262390, privateKey)
 	if err != nil {
 		logrus.Errorf("failed to read key: %v", err)
 		return
