@@ -133,13 +133,15 @@ func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 
 	// TODO use context!!!
 	ctx, _ := context.WithTimeout(context.Background(), 15 * time.Minute)
-	for version, runStageIDs := range runIDs {
-		go func(ctx context.Context) {
-			results, messages, err := golang.TestGoRepo(config, evt.Repo.GetCloneURL(), evt.CheckSuite.GetHeadSHA())
-			if err != nil {
-				logrus.Errorf("testGoRepo failed: %v", err)
-				return
-			}
+	go func(ctx context.Context) {
+		results, messages, err := golang.TestGoRepo(config, evt.Repo.GetCloneURL(), evt.CheckSuite.GetHeadSHA())
+		if err != nil {
+			logrus.Errorf("testGoRepo failed: %v", err)
+			return
+		}
+		logrus.Infof("results", results)
+		logrus.Infof("messages", messages)
+		for version, runStageIDs := range runIDs {
 			for stage, runID := range runStageIDs {
 				annotations, err := results.Annotations(version, stage, evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), evt.CheckSuite.GetHeadSHA())
 				if err != nil {
@@ -150,6 +152,7 @@ func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 				if len(annotations) > 0 {
 					conclusion = github2.Failure
 				}
+				logrus.Infof("%s %s: %s", version, stage, conclusion)
 				err = github2.UpdateCheckRun(client,  evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), runID, conclusion,
 					fmt.Sprintf("%s: %s", version, stage), // title,
 					messages[version], // summary
@@ -159,7 +162,7 @@ func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 					logrus.Errorf("failed to update check_run %s: %v", runID, err)
 				}
 			}
-		}(ctx)
-	}
+		}
+	}(ctx)
 	return nil
 }
