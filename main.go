@@ -131,8 +131,6 @@ func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 			logrus.Errorf("testGoRepo failed: %v", err)
 			return
 		}
-		logrus.Infof("results: %v", results)
-		logrus.Infof("messages: %v", messages)
 		for version, runID := range runIDs {
 			annotations, err := results.Annotations(version, evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), evt.CheckSuite.GetHeadSHA())
 			if err != nil {
@@ -143,7 +141,7 @@ func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 			if len(annotations) > 0 || messages[version] != "successful" {
 				conclusion = github2.Failure
 			}
-			logrus.Infof("[%d] %s: %s", runID, version, conclusion)
+			logrus.Debugf("[%d] %s: %s", runID, version, conclusion)
 			err = github2.UpdateCheckRun(client, evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), runID,
 				version,                           // name
 				version+" title",                  // title,

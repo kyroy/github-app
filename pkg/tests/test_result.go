@@ -39,5 +39,6 @@ func (r Results) Annotations(version, owner, repo, sha string) ([]*github.CheckR
 			})
 		}
 	}
+	logrus.Debugf("[%s] annotations: %v", version, annotations)
 	return annotations, nil
 }

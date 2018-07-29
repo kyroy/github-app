@@ -78,7 +78,7 @@ func testGoVersion(d *dexec.Docker, image string, commands []string) (map[string
 	}
 	logrus.Infof("[%s] %s", image, msg)
 	if logrus.GetLevel() == logrus.DebugLevel {
-		logrus.Debugf("[%s] testLog ----------------")
+		logrus.Debugf("[%s] testLog ----------------", image)
 		fmt.Printf("%s\n----------------\n", b)
 	}
 	return parseTestResults(b), msg
