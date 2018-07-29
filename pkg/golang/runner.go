@@ -149,11 +149,10 @@ func parseGoTest(lines [][]byte, i int, importPath string) ([]*tests.Result, int
 			for b, test := range suite.Tests {
 				fmt.Printf("  %d test %s, %v, %s, %s\n", b, test.Name, test.Status, test.Time, test.Message)
 				reResults := re.FindSubmatch([]byte(fmt.Sprintf("%s%s", buildFilePathPrefix(suite.Name, importPath), strings.TrimSpace(test.Message))))
-				res, err := newTestResult(reResults)
+				res, err := newTestResult(test.Name, reResults)
 				if err != nil {
 					continue
 				}
-				res.Message = fmt.Sprintf("%s %s: %s", suite.Name, test.Name, res.Message)
 				results = append(results, res)
 			}
 		}
@@ -178,7 +177,7 @@ func parseStage(lines [][]byte, i int) ([]*tests.Result, int) {
 			break
 		}
 		results := re.FindSubmatch(line)
-		res, err := newTestResult(results)
+		res, err := newTestResult("", results)
 		if err != nil {
 			continue
 		}
@@ -187,7 +186,7 @@ func parseStage(lines [][]byte, i int) ([]*tests.Result, int) {
 	return findings, i
 }
 
-func newTestResult(results [][]byte) (*tests.Result, error) {
+func newTestResult(title string, results [][]byte) (*tests.Result, error) {
 	found := &tests.Result{}
 	if len(results) > 0 {
 		for i, res := range results {
@@ -202,6 +201,7 @@ func newTestResult(results [][]byte) (*tests.Result, error) {
 			}
 		}
 	}
+	found.Title = title
 	if !found.Valid() {
 		return found, fmt.Errorf("invalid")
 	}

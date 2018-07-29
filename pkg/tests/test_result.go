@@ -7,6 +7,7 @@ import (
 )
 
 type Result struct {
+	Title   string
 	File    string
 	Line    *int
 	Message string
@@ -34,8 +35,12 @@ func (r StageResults) Annotations(owner, repo, sha string) ([]*github.CheckRunAn
 	for stage, results := range r {
 		for _, res := range results {
 			logrus.Debugf("%s: %v", stage, res)
+			title := stage
+			if res.Title != "" {
+				title = fmt.Sprintf("%s: %s", stage, res.Title)
+			}
 			annotations = append(annotations, &github.CheckRunAnnotation{
-				Title:        github.String(stage),
+				Title:        &title,
 				Message:      &res.Message,
 				FileName:     &res.File,
 				BlobHRef:     github.String(fmt.Sprintf("https://github.com/%s/%s/blob/%s/%s", owner, repo, sha, res.File)),
