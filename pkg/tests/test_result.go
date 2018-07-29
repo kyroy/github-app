@@ -27,7 +27,7 @@ func (r Results) Annotations(version, owner, repo, sha string) ([]*github.CheckR
 	for stage, results := range versionResults {
 		for _, res := range results {
 			annotations = append(annotations, &github.CheckRunAnnotation{
-				Title:        &stage,
+				Title:        github.String(stage),
 				Message:      &res.Message,
 				FileName:     &res.File,
 				BlobHRef:     github.String(fmt.Sprintf("https://github.com/%s/%s/blob/%s/%s", owner, repo, sha, res.File)),

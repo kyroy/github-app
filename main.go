@@ -97,8 +97,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
-	if evt.CheckSuite.GetStatus() != "queued" {
-		logrus.Infof("unhandled check suite status: %s, actionL %s", evt.CheckSuite.GetStatus(), evt.GetAction())
+	if evt.CheckSuite.GetStatus() != "queued" && evt.GetAction() != "rerequested" {
+		logrus.Infof("unhandled check suite status: %s, action: %s", evt.CheckSuite.GetStatus(), evt.GetAction())
 		return nil
 	}
 
@@ -131,12 +131,12 @@ func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 			logrus.Errorf("testGoRepo failed: %v", err)
 			return
 		}
-		logrus.Infof("results", results)
-		logrus.Infof("messages", messages)
+		logrus.Infof("results: %v", results)
+		logrus.Infof("messages: %v", messages)
 		for version, runID := range runIDs {
 			annotations, err := results.Annotations(version, evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), evt.CheckSuite.GetHeadSHA())
 			if err != nil {
-				logrus.Errorf("failed to create annotations: %v", err)
+				logrus.Errorf("[%s] failed to create annotations: %v", version, err)
 				continue
 			}
 			conclusion := github2.Success
@@ -145,10 +145,10 @@ func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 			}
 			logrus.Infof("[%d] %s: %s", runID, version, conclusion)
 			err = github2.UpdateCheckRun(client, evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), runID,
-				version,                         // name
-				version,                         // title,
-				messages[version],               // summary
-				github.String("beautiful test"), // text
+				version,                           // name
+				version+" title",                  // title,
+				"x succeed, x warnings, x errors", // summary
+				github.String(messages[version]),  // text
 				conclusion,
 				annotations)
 			if err != nil {
