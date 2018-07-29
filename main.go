@@ -1,18 +1,18 @@
 package main
 
 import (
-	"encoding/json"
-	"github.com/google/go-github/github"
-	"net/http"
-	"github.com/sirupsen/logrus"
-	"fmt"
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/bradleyfalzon/ghinstallation"
-	"io/ioutil"
-	"time"
-	"github.com/kyroy/github-app/pkg/golang"
+	"github.com/google/go-github/github"
 	config2 "github.com/kyroy/github-app/pkg/config"
 	github2 "github.com/kyroy/github-app/pkg/github"
+	"github.com/kyroy/github-app/pkg/golang"
+	"github.com/sirupsen/logrus"
+	"io/ioutil"
+	"net/http"
+	"time"
 )
 
 func test() {
@@ -34,8 +34,6 @@ func test() {
 	a, b, c := client.Checks.GetCheckSuite(context.Background(), "Kyroy", "testrepo", 7719827)
 	fmt.Println("aaa", a, b, c)
 }
-
-
 
 func main() {
 	//setSuiteProgress("Kyroy", "testrepo", "Kyroy-patch-1", "11621bbd1f7ef7ab05156563fc3ab9d663b8a0c", 7719827)
@@ -88,7 +86,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		// Use installation transport with client.
 		client := github.NewClient(&http.Client{Transport: itr})
 
-
 		if err := handleSuite(client, evt); err != nil {
 			logrus.Errorf("failed to handle suite: %v", err)
 		}
@@ -110,37 +107,23 @@ func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 		return fmt.Errorf("failed to download config: %v", err)
 	}
 
-	runIDs := make(map[string]map[string]int64)
+	runIDs := make(map[string]int64)
 	for _, version := range config.Versions() {
-		runIDs[version] = make(map[string]int64)
 		d, err := github2.CreateCheckRun(client,
 			evt.Repo.Owner.GetLogin(),
 			evt.Repo.GetName(),
 			evt.CheckSuite.GetHeadBranch(),
 			evt.CheckSuite.GetHeadSHA(),
-			fmt.Sprintf("%s: setup", version))
+			version)
 		if err != nil {
-			logrus.Errorf("failed to create setup check_run: %v", err)
+			logrus.Errorf("failed to create setup check_run for %s: %v", version, err)
 			continue
 		}
-		runIDs[version]["setup"] = d
-		for stage := range config.TestCommands() {
-			d, err := github2.CreateCheckRun(client,
-				evt.Repo.Owner.GetLogin(),
-				evt.Repo.GetName(),
-				evt.CheckSuite.GetHeadBranch(),
-				evt.CheckSuite.GetHeadSHA(),
-				fmt.Sprintf("%s: %s", version, stage))
-			if err != nil {
-				logrus.Errorf("failed to create %s check_run: %v", stage, err)
-				continue
-			}
-			runIDs[version][stage] = d
-		}
+		runIDs[version] = d
 	}
 
 	// TODO use context!!!
-	ctx, _ := context.WithTimeout(context.Background(), 15 * time.Minute)
+	ctx, _ := context.WithTimeout(context.Background(), 15*time.Minute)
 	go func(ctx context.Context) {
 		results, messages, err := golang.TestGoRepo(config, evt.Repo.GetCloneURL(), evt.CheckSuite.GetHeadSHA())
 		if err != nil {
@@ -149,28 +132,26 @@ func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 		}
 		logrus.Infof("results", results)
 		logrus.Infof("messages", messages)
-		for version, runStageIDs := range runIDs {
-			for stage, runID := range runStageIDs {
-				annotations, err := results.Annotations(version, stage, evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), evt.CheckSuite.GetHeadSHA())
-				if err != nil {
-					logrus.Errorf("failed to create annotations: %v", err)
-					continue
-				}
-				conclusion := github2.Success
-				if len(annotations) > 0 {
-					conclusion = github2.Failure
-				}
-				logrus.Infof("[%d] %s %s: %s", runID, version, stage, conclusion)
-				err = github2.UpdateCheckRun(client,  evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), runID,
-					fmt.Sprintf("%s: %s", version, stage),
-					fmt.Sprintf("%s: %s", version, stage), // title,
-					messages[version], // summary
-					github.String("beautiful test"), // text
-					conclusion,
-					annotations)
-				if err != nil {
-					logrus.Errorf("failed to update check_run %s: %v", runID, err)
-				}
+		for version, runID := range runIDs {
+			annotations, err := results.Annotations(version, evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), evt.CheckSuite.GetHeadSHA())
+			if err != nil {
+				logrus.Errorf("failed to create annotations: %v", err)
+				continue
+			}
+			conclusion := github2.Success
+			if len(annotations) > 0 {
+				conclusion = github2.Failure
+			}
+			logrus.Infof("[%d] %s: %s", runID, version, conclusion)
+			err = github2.UpdateCheckRun(client, evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), runID,
+				version,                         // name
+				version,                         // title,
+				messages[version],               // summary
+				github.String("beautiful test"), // text
+				conclusion,
+				annotations)
+			if err != nil {
+				logrus.Errorf("failed to update check_run %s: %v", runID, err)
 			}
 		}
 	}(ctx)

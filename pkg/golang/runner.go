@@ -1,23 +1,22 @@
 package golang
 
 import (
-	"fmt"
-	"github.com/fsouza/go-dockerclient"
-	"github.com/sirupsen/logrus"
-	"github.com/ahmetalpbalkan/dexec"
-	"strings"
 	"bytes"
-	"strconv"
-	"regexp"
-	"github.com/kyroy/github-app/pkg/tests"
+	"fmt"
+	"github.com/ahmetalpbalkan/dexec"
+	"github.com/fsouza/go-dockerclient"
 	"github.com/kyroy/github-app/pkg/config"
+	"github.com/kyroy/github-app/pkg/tests"
+	"github.com/sirupsen/logrus"
+	"regexp"
+	"strconv"
+	"strings"
 )
 
 var (
-	re = regexp.MustCompile(`^\s*(?P<file>.+\.go):(?P<line>\d+):(?P<col>\d+)?:? (?P<message>.+)$`)
+	re      = regexp.MustCompile(`^\s*(?P<file>.+\.go):(?P<line>\d+):(?P<col>\d+)?:? (?P<message>.+)$`)
 	reNames = re.SubexpNames()
 )
-
 
 //
 // version -> stage -> results, version -> message, error
@@ -72,14 +71,11 @@ func testGoVersion(d *dexec.Docker, image string, commands []string) (map[string
 		if msg != "" {
 			msg = " - " + msg
 		}
-		msg = fmt.Sprintf("execution failed with: %s%s", strings.TrimPrefix(err.Error(), "dexec: "), msg)
+		msg = fmt.Sprintf("[%s] execution failed with: %s%s", image, strings.TrimPrefix(err.Error(), "dexec: "), msg)
 	}
 	logrus.Infof(msg)
 	return parseTestResults(b), msg
 }
-
-
-
 
 func parseTestResults(testLog []byte) map[string][]*tests.Result {
 	findings := make(map[string][]*tests.Result)

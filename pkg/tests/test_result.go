@@ -1,13 +1,13 @@
 package tests
 
 import (
-	"github.com/google/go-github/github"
 	"fmt"
+	"github.com/google/go-github/github"
 )
 
 type Result struct {
-	File string
-	Line *int
+	File    string
+	Line    *int
 	Message string
 }
 
@@ -18,25 +18,24 @@ func (r *Result) Valid() bool {
 // version -> stage -> results
 type Results map[string]map[string][]*Result
 
-func (r Results) Annotations(version, stage, owner, repo, sha string) ([]*github.CheckRunAnnotation, error) {
+func (r Results) Annotations(version, owner, repo, sha string) ([]*github.CheckRunAnnotation, error) {
 	versionResults, ok := r[version]
 	if !ok {
 		return nil, fmt.Errorf("failed to get version %s results", version)
 	}
-	stageResults, ok := versionResults[stage]
-	if !ok {
-		return nil, fmt.Errorf("failed to get version %s stage %s results", version, stage)
-	}
 	var annotations []*github.CheckRunAnnotation
-	for _, res := range stageResults {
-		annotations = append(annotations, &github.CheckRunAnnotation{
-			FileName: &res.File, // *
-			BlobHRef: github.String(fmt.Sprintf("https://github.com/%s/%s/blob/%s/%s", owner, repo, sha, res.File)), // *
-			StartLine: res.Line, // *
-			EndLine: res.Line, // *
-			WarningLevel: github.String("failure"),// * notice, warning, failure
-			Message: &res.Message, // *
-		})
+	for stage, results := range versionResults {
+		for _, res := range results {
+			annotations = append(annotations, &github.CheckRunAnnotation{
+				Title:        &stage,
+				Message:      &res.Message,
+				FileName:     &res.File,
+				BlobHRef:     github.String(fmt.Sprintf("https://github.com/%s/%s/blob/%s/%s", owner, repo, sha, res.File)),
+				StartLine:    res.Line,
+				EndLine:      res.Line,
+				WarningLevel: github.String("failure"),
+			})
+		}
 	}
 	return annotations, nil
 }
