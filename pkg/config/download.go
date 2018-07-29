@@ -16,7 +16,7 @@ func Download(client *github.Client, owner, repo, ref string) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not download config file: %v", err)
 	}
-	var cfg Config
+	var cfg hiddenConfig
 	if err = yaml.NewDecoder(f).Decode(&cfg); err != nil {
 		return nil, fmt.Errorf("could not decode config file: %v", err)
 	}
@@ -29,5 +29,7 @@ func Download(client *github.Client, owner, repo, ref string) (*Config, error) {
 	if cfg.GoImportPath == "" {
 		cfg.GoImportPath = fmt.Sprintf("github.com/%s/%s", owner, repo)
 	}
-	return &cfg, nil
+	return &Config{
+		hidden: cfg,
+	}, nil
 }

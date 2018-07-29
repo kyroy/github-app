@@ -50,7 +50,7 @@ func main() {
 	//	GoImportPath: "github.com/Kyroy/testrepo",
 	//}, "https://github.com/Kyroy/testrepo.git", "eb041cb31ee1df478bba2194a48e0ce19b42e4e9")
 	//fmt.Println(results, messages, err)
-	
+
 	http.HandleFunc("/", handler)
 
 	logrus.Infof("listening on 8080")
@@ -111,7 +111,7 @@ func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 	}
 
 	runIDs := make(map[string]map[string]int64)
-	for _, version := range config.Versions {
+	for _, version := range config.Versions() {
 		runIDs[version] = make(map[string]int64)
 		d, err := github2.CreateCheckRun(client,
 			evt.Repo.Owner.GetLogin(),
@@ -124,7 +124,7 @@ func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 			continue
 		}
 		runIDs[version]["setup"] = d
-		for stage := range config.Tests {
+		for stage := range config.TestCommands() {
 			d, err = github2.CreateCheckRun(client,
 				evt.Repo.Owner.GetLogin(),
 				evt.Repo.GetName(),

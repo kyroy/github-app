@@ -30,8 +30,8 @@ func TestGoRepo(config *config.Config, URL, commit string) (tests.Results, map[s
 		fmt.Sprintf("git checkout -q %s", commit),
 		"echo '### setup'",
 	}
-	commands = append(commands, config.GetSetup()...)
-	for stage, cmds := range config.GetTests() {
+	commands = append(commands, config.SetupCommands()...)
+	for stage, cmds := range config.TestCommands() {
 		commands = append(commands, fmt.Sprintf("echo '### %s'", stage))
 		commands = append(commands, cmds...)
 	}
@@ -45,7 +45,7 @@ func TestGoRepo(config *config.Config, URL, commit string) (tests.Results, map[s
 
 	result := make(tests.Results)
 	messages := make(map[string]string)
-	for _, version := range config.Versions {
+	for _, version := range config.Versions() {
 		result[version], messages[version] = testGoVersion(&d, version, commands)
 	}
 	return result, messages, nil
