@@ -1,31 +1,40 @@
 package github
 
 import (
-	"github.com/google/go-github/github"
-	"fmt"
 	"context"
+	"fmt"
+	"github.com/google/go-github/github"
 	"time"
 )
 
-type Conclusion string
+type Conclusion *string
 
-const (
-	Success Conclusion = "success"
-	Failure Conclusion = "failure"
-	Neutral Conclusion = "neutral"
-	Cancelled Conclusion = "cancelled"
-	TimedOut Conclusion = "timed_out"
-	ActionRequired Conclusion = "action_required"
+var (
+	None           Conclusion = nil
+	Success        Conclusion = github.String("success")
+	Failure        Conclusion = github.String("failure")
+	Neutral        Conclusion = github.String("neutral")
+	Cancelled      Conclusion = github.String("cancelled")
+	TimedOut       Conclusion = github.String("timed_out")
+	ActionRequired Conclusion = github.String("action_required")
+)
+
+type Status *string
+
+var (
+	Queued     Status = github.String("queued")
+	InProgress Status = github.String("in_progress")
+	Completed  Status = github.String("completed")
 )
 
 //
-func CreateCheckRun(client *github.Client, owner, repo, branch, sha, name string) (int64, error) {
+func CreateCheckRun(client *github.Client, owner, repo, branch, sha, name string, status Status) (int64, error) {
 	checkRun, _, err := client.Checks.CreateCheckRun(context.Background(), owner, repo, github.CreateCheckRunOptions{
-		Name: name, // *
+		Name:       name,   // *
 		HeadBranch: branch, // *
-		HeadSHA: sha, // *
-		Status: github.String("in_progress"),
-		StartedAt: &github.Timestamp{Time: time.Now()},
+		HeadSHA:    sha,    // *
+		Status:     status,
+		StartedAt:  &github.Timestamp{Time: time.Now()},
 	})
 	if err != nil {
 		return 0, fmt.Errorf("failed to create check_run: %v", err)
@@ -33,17 +42,23 @@ func CreateCheckRun(client *github.Client, owner, repo, branch, sha, name string
 	return checkRun.GetID(), nil
 }
 
-func UpdateCheckRun(client *github.Client, owner, repo string, checkRunID int64, name, title, summary string, text *string, conclusion Conclusion, annotations []*github.CheckRunAnnotation) error {
+func UpdateCheckRun(client *github.Client, owner, repo string, checkRunID int64, name string, status Status, conclusion Conclusion, output *github.CheckRunOutput) error {
+	var timestamp *github.Timestamp
+	if status == Completed {
+		timestamp = &github.Timestamp{Time: time.Now()}
+	}
 	_, _, err := client.Checks.UpdateCheckRun(context.Background(), owner, repo, checkRunID, github.UpdateCheckRunOptions{
-		Name: name,
-		CompletedAt: &github.Timestamp{Time: time.Now()},
-		Conclusion: github.String(string(conclusion)),
-		Output: &github.CheckRunOutput{
-			Title: &title, // *
-			Summary: &summary, // *
-			Text: text,
-			Annotations: annotations,
-		},
+		Name:        name,
+		Status:      status,
+		Conclusion:  conclusion,
+		CompletedAt: timestamp,
+		Output:      output,
+		//&github.CheckRunOutput{
+		//	Title:       &title,   // *
+		//	Summary:     &summary, // *
+		//	Text:        text,
+		//	Annotations: annotations,
+		//},
 	})
 	if err != nil {
 		return fmt.Errorf("failed to update check_run %d: %v", checkRunID, err)

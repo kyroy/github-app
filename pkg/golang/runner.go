@@ -53,6 +53,41 @@ func TestGoRepo(config *config.Config, URL, commit string) (tests.Results, map[s
 	return result, messages, nil
 }
 
+func TestGoVersion(config *config.Config, URL, commit, image string) (tests.StageResults, string, error) {
+	commands := []string{
+		"go version",
+		fmt.Sprintf("mkdir -p $GOPATH/src/%s", config.GoImportPath()),
+		fmt.Sprintf("cd $GOPATH/src/%s", config.GoImportPath()),
+		fmt.Sprintf("git clone -q %s .", URL),
+		fmt.Sprintf("git checkout -q %s", commit),
+		"echo '### setup'",
+	}
+	commands = append(commands, config.SetupCommands()...)
+	for stage, cmds := range config.TestCommands() {
+		commands = append(commands, fmt.Sprintf("echo '### %s'", stage))
+		commands = append(commands, cmds...)
+	}
+
+	cl, err := docker.NewClient("unix:///var/run/docker.sock")
+	if err != nil {
+		logrus.Errorf("failed to create docker client: %v", err)
+		return nil, "", fmt.Errorf("internal server error")
+	}
+	d := dexec.Docker{Client: cl}
+
+	s := strings.Split(image, ":")
+	if len(s) != 2 {
+		return nil, "", fmt.Errorf("failed to parse image tag for %s", image)
+	}
+	tag := s[1]
+	if err := cl.PullImage(docker.PullImageOptions{Repository: config.DockerImage(), Tag: tag}, docker.AuthConfiguration{}); err != nil {
+		logrus.Errorf("failed to pull image %s:%s: %v", config.DockerImage(), tag, err)
+	}
+	stageResults, message := testGoVersion(&d, image, commands)
+
+	return stageResults, message, nil
+}
+
 //
 // stage -> results, message
 func testGoVersion(d *dexec.Docker, image string, commands []string) (map[string][]*tests.Result, string) {

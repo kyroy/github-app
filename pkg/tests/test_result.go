@@ -17,17 +17,23 @@ func (r *Result) Valid() bool {
 }
 
 // version -> stage -> results
-type Results map[string]map[string][]*Result
+type Results map[string]StageResults
 
 func (r Results) Annotations(version, owner, repo, sha string) ([]*github.CheckRunAnnotation, error) {
 	versionResults, ok := r[version]
 	if !ok {
 		return nil, fmt.Errorf("failed to get version %s results", version)
 	}
+	return versionResults.Annotations(owner, repo, sha)
+}
+
+type StageResults map[string][]*Result
+
+func (r StageResults) Annotations(owner, repo, sha string) ([]*github.CheckRunAnnotation, error) {
 	var annotations []*github.CheckRunAnnotation
-	for stage, results := range versionResults {
+	for stage, results := range r {
 		for _, res := range results {
-			logrus.Debugf("[%s] %s: %v", version, stage, res)
+			logrus.Debugf("%s: %v", stage, res)
 			annotations = append(annotations, &github.CheckRunAnnotation{
 				Title:        github.String(stage),
 				Message:      &res.Message,
@@ -39,7 +45,7 @@ func (r Results) Annotations(version, owner, repo, sha string) ([]*github.CheckR
 			})
 		}
 	}
-	logrus.Debugf("[%s] annotations: %v", version, annotations)
+	logrus.Debugf("annotations: %v", annotations)
 	for _, a := range annotations {
 		logrus.Debugf(" - %s: %v", a.GetTitle(), a)
 	}
