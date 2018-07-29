@@ -147,7 +147,7 @@ func handleRun(client *github.Client, evt github.CheckRunEvent) error {
 		}
 
 	case "rerequested":
-		_, err := github2.CreateCheckRun(client,
+		runID, err = github2.CreateCheckRun(client,
 			evt.Repo.Owner.GetLogin(),
 			evt.Repo.GetName(),
 			evt.CheckRun.CheckSuite.GetHeadBranch(),
