@@ -1,9 +1,9 @@
 package config
 
 import (
-	"github.com/google/go-github/github"
 	"context"
 	"fmt"
+	"github.com/google/go-github/github"
 	"gopkg.in/yaml.v2"
 )
 
@@ -22,9 +22,6 @@ func Download(client *github.Client, owner, repo, ref string) (*Config, error) {
 	}
 	if err = cfg.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid config file: %v", err)
-	}
-	for i, version := range cfg.Versions {
-		cfg.Versions[i] = fmt.Sprintf("%s:%s", cfg.dockerImage(), version)
 	}
 	if cfg.GoImportPath == "" {
 		cfg.GoImportPath = fmt.Sprintf("github.com/%s/%s", owner, repo)

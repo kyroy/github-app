@@ -44,7 +44,10 @@ func TestGoRepo(config *config.Config, URL, commit string) (tests.Results, map[s
 
 	result := make(tests.Results)
 	messages := make(map[string]string)
-	for _, version := range config.Versions() {
+	for i, version := range config.Versions() {
+		if err := cl.PullImage(docker.PullImageOptions{Repository: config.DockerImage(), Tag: config.Tags()[i]}, docker.AuthConfiguration{}); err != nil {
+			logrus.Errorf("failed to pull image %s: %v", version, err)
+		}
 		result[version], messages[version] = testGoVersion(&d, version, commands)
 	}
 	return result, messages, nil

@@ -3,10 +3,10 @@ package config
 import "fmt"
 
 type hiddenConfig struct {
-	Language string `yaml:"language"`
-	Versions []string `yaml:"versions"`
-	Setup []string `yaml:"setup,omitempty"`
-	Tests map[string][]string `yaml:"tests,omitempty"`
+	Language string              `yaml:"language"`
+	Versions []string            `yaml:"versions"`
+	Setup    []string            `yaml:"setup,omitempty"`
+	Tests    map[string][]string `yaml:"tests,omitempty"`
 	// go
 	GoImportPath string `yaml:"go_import_path,omitempty"`
 }
@@ -26,20 +26,28 @@ func (c hiddenConfig) Validate() error {
 	return nil
 }
 
-func (c hiddenConfig) dockerImage() string {
-	switch c.Language {
+type Config struct {
+	hidden hiddenConfig
+}
+
+func (c Config) DockerImage() string {
+	switch c.hidden.Language {
 	case "go":
 		return "golang"
 	}
 	return "ubuntu"
 }
 
-type Config struct {
-	hidden hiddenConfig
+func (c Config) Tags() []string {
+	return c.hidden.Versions
 }
 
 func (c Config) Versions() []string {
-	return c.hidden.Versions
+	versions := make([]string, len(c.Tags()))
+	for i, version := range c.Tags() {
+		versions[i] = fmt.Sprintf("%s:%s", c.DockerImage(), version)
+	}
+	return versions
 }
 
 func (c Config) GoImportPath() string {
@@ -60,7 +68,7 @@ func (c Config) TestCommands() map[string][]string {
 	switch c.hidden.Language {
 	case "go":
 		return map[string][]string{
-			"golint":  {
+			"golint": {
 				"go get -u golang.org/x/lint/golint",
 				fmt.Sprintf(`golint $(go list ./...) | sed 's/'$(echo $GOPATH/src/%s/ | sed 's/\//\\\//g')'//g'`, c.GoImportPath()),
 			},
@@ -69,4 +77,3 @@ func (c Config) TestCommands() map[string][]string {
 	}
 	return nil
 }
-
