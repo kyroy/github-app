@@ -160,7 +160,7 @@ func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 				if len(annotations) > 0 {
 					conclusion = github2.Failure
 				}
-				logrus.Infof("%s %s: %s", version, stage, conclusion)
+				logrus.Infof("[%d] %s %s: %s", runID, version, stage, conclusion)
 				err = github2.UpdateCheckRun(client,  evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), runID, conclusion,
 					fmt.Sprintf("%s: %s", version, stage), // title,
 					messages[version], // summary

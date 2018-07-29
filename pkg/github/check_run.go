@@ -25,6 +25,7 @@ func CreateCheckRun(client *github.Client, owner, repo, branch, sha, name string
 		HeadBranch: branch, // *
 		HeadSHA: sha, // *
 		Status: github.String("in_progress"),
+		StartedAt: &github.Timestamp{Time: time.Now()},
 	})
 	if err != nil {
 		return 0, fmt.Errorf("failed to create check_run: %v", err)
