@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/google/go-github/github"
 	"gopkg.in/yaml.v2"
+	"io"
 )
 
 const name = ".kyroy.yaml"
@@ -16,11 +17,15 @@ func Download(client *github.Client, owner, repo, ref string) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not download config file: %v", err)
 	}
+	return New(f, owner, repo)
+}
+
+func New(r io.Reader, owner, repo string) (*Config, error) {
 	var cfg hiddenConfig
-	if err = yaml.NewDecoder(f).Decode(&cfg); err != nil {
+	if err := yaml.NewDecoder(r).Decode(&cfg); err != nil {
 		return nil, fmt.Errorf("could not decode config file: %v", err)
 	}
-	if err = cfg.Validate(); err != nil {
+	if err := cfg.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid config file: %v", err)
 	}
 	if cfg.GoImportPath == "" {

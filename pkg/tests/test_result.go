@@ -14,7 +14,7 @@ type Result struct {
 }
 
 func (r *Result) Valid() bool {
-	return r.File != "" && r.Line != nil && r.Message != ""
+	return r.File != "" && r.Line != nil
 }
 
 // version -> stage -> results

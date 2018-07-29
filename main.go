@@ -10,44 +10,18 @@ import (
 	github2 "github.com/kyroy/github-app/pkg/github"
 	"github.com/kyroy/github-app/pkg/golang"
 	"github.com/sirupsen/logrus"
-	"io/ioutil"
 	"net/http"
 	"time"
 )
 
-func test() {
-	fmt.Println("checking with", 15308, 262390)
-	//itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, 15308, 262390, "kyroy-s-testapp.2018-07-28.private-key.pem")
-	privateKey, err := ioutil.ReadFile("kyroy-s-testapp.2018-07-28.private-key.pem")
-	if err != nil {
-		logrus.Errorf("could not read private key: %s", err)
-		return
-	}
-	fmt.Printf("privatekey: %s", privateKey)
-	itr, err := ghinstallation.New(http.DefaultTransport, 15308, 262390, privateKey)
-	if err != nil {
-		logrus.Errorf("failed to read key: %v", err)
-		return
-	}
-	client := github.NewClient(&http.Client{Transport: itr})
-
-	a, b, c := client.Checks.GetCheckSuite(context.Background(), "Kyroy", "testrepo", 7719827)
-	fmt.Println("aaa", a, b, c)
-}
-
 func main() {
 	logrus.SetLevel(logrus.DebugLevel)
-	//setSuiteProgress("Kyroy", "testrepo", "Kyroy-patch-1", "11621bbd1f7ef7ab05156563fc3ab9d663b8a0c", 7719827)
-	//setRunCompleted("Kyroy", "testrepo", "Kyroy-patch-1", "11621bbd1f7ef7ab05156563fc3ab9d663b8a0c", 9669759)
-	//test()
-	//fmt.Printf("\n\n\n")
-	//testGoRepo()
 
 	//results, messages, err := golang.TestGoRepo(&config2.Config{
 	//	Language: "go",
 	//	Versions: []string{"golang:1.10"},
 	//	GoImportPath: "github.com/Kyroy/testrepo",
-	//}, "https://github.com/Kyroy/testrepo.git", "eb041cb31ee1df478bba2194a48e0ce19b42e4e9")
+	//}, "https://github.com/Kyroy/testrepo.git", "e91d25fff08cfc19b68c6deba142caaaac448561")
 	//fmt.Println(results, messages, err)
 
 	http.HandleFunc("/", handler)
@@ -208,9 +182,6 @@ func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 		goto CreateSuite
 	}
 	return nil
-	//if evt.CheckSuite.GetStatus() != "queued" || evt.GetAction() != "created" {
-	//	return nil
-	//}
 CreateSuite:
 	config, err := config2.Download(client, evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), evt.CheckSuite.GetHeadBranch())
 	if err != nil {
