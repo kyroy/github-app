@@ -149,7 +149,7 @@ func parseGoTest(lines [][]byte, i int, importPath string) ([]*tests.Result, int
 			for b, test := range suite.Tests {
 				fmt.Printf("  %d test %s, %v, %s, %s\n", b, test.Name, test.Status, test.Time, test.Message)
 
-				reResults := re.FindSubmatch([]byte(fmt.Sprintf("%s/%s", strings.Trim(suite.Name, importPath), test.Message)))
+				reResults := re.FindSubmatch([]byte(fmt.Sprintf("%s/%s", strings.Trim(suite.Name, importPath+"/"), strings.TrimSpace(test.Message))))
 				res, err := newTestResult(reResults)
 				if err != nil {
 					continue
