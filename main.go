@@ -90,15 +90,42 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		if err := handleSuite(client, evt); err != nil {
 			logrus.Errorf("failed to handle suite: %v", err)
 		}
+	case "check_run":
+		var evt github.CheckRunEvent
+		if err := json.NewDecoder(r.Body).Decode(&evt); err != nil {
+			logrus.Errorf("failed to unmarshal payload: %v", err)
+			w.WriteHeader(500)
+			return
+		}
+
+		fmt.Println("checking with", int(evt.CheckRun.App.GetID()), int(evt.Installation.GetID()))
+		itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, int(evt.CheckRun.App.GetID()), int(evt.Installation.GetID()), "kyroy-s-testapp.2018-07-28.private-key.pem")
+		if err != nil {
+			logrus.Errorf("failed to read key: %v", err)
+			w.WriteHeader(500)
+			return
+		}
+
+		// Use installation transport with client.
+		client := github.NewClient(&http.Client{Transport: itr})
+
+		if err := handleRun(client, evt); err != nil {
+			logrus.Errorf("failed to handle suite: %v", err)
+		}
 	default:
 		logrus.Errorf("unknown event: %s", event)
 	}
-	w.WriteHeader(400)
+	w.WriteHeader(200)
+}
+
+func handleRun(client *github.Client, evt github.CheckRunEvent) error {
+	logrus.Infof("check_run - status: %s, action: %s", evt.CheckRun.GetStatus(), evt.GetAction())
+	return nil
 }
 
 func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
+	logrus.Infof("check_suite - status %s, action: %s", evt.CheckSuite.GetStatus(), evt.GetAction())
 	if evt.CheckSuite.GetStatus() != "queued" && evt.GetAction() != "rerequested" {
-		logrus.Infof("unhandled check suite status: %s, action: %s", evt.CheckSuite.GetStatus(), evt.GetAction())
 		return nil
 	}
 
