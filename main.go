@@ -131,7 +131,7 @@ func handleRun(client *github.Client, evt github.CheckRunEvent) error {
 	runID := evt.CheckRun.GetID()
 	name := evt.CheckRun.GetName()
 
-	if err := github2.UpdateCheckRun(client, evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), runID, name, github2.InProgress, github2.None, nil); err != nil {
+	if err := github2.UpdateCheckRun(client, evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), runID, name, github2.InProgress, github2.None, &github.CheckRunOutput{}); err != nil {
 		return fmt.Errorf("failed to set %d to in_progress: %v", runID, err)
 	}
 
