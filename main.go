@@ -98,7 +98,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 	if evt.CheckSuite.GetStatus() != "queued" {
-		logrus.Infof("unhandled check suite status: %s", evt.CheckSuite.GetStatus())
+		logrus.Infof("unhandled check suite status: %s, actionL %s", evt.CheckSuite.GetStatus(), evt.GetAction())
 		return nil
 	}
 
