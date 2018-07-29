@@ -5,36 +5,10 @@ import (
 	"fmt"
 	"github.com/kyroy/github-app/pkg/tests"
 	"github.com/sirupsen/logrus"
-	"github.com/tebeka/go2xunit/lib"
 	"strings"
 )
 
-func parseGoTestLib(lines [][]byte, i int, importPath string) ([]*tests.Result, int) {
-	j := i
-	for ; j < len(lines); j++ {
-		if bytes.HasPrefix(lines[j], []byte("### ")) {
-			break
-		}
-	}
-	var results []*tests.Result
-	suites, err := lib.ParseGotest(bytes.NewReader(bytes.Join(lines[i:j], []byte{'\n'})), "")
-	if err == nil {
-		for _, suite := range suites {
-			for _, test := range suite.Tests {
-				reResults := re.FindSubmatch([]byte(fmt.Sprintf("%s%s", buildFilePathPrefix(suite.Name, importPath), strings.TrimSpace(test.Message))))
-				res, err := newTestResult(test.Name, reResults)
-				if err != nil {
-					continue
-				}
-				results = append(results, res)
-			}
-		}
-	}
-	return results, j - 1
-}
-
 func parseGoTest(lines [][]byte, i int, importPath string) ([]*tests.Result, int) {
-	//return parseGoTestLib(lines, i, importPath)
 	j := i
 	for ; j < len(lines); j++ {
 		if bytes.HasPrefix(lines[j], []byte("### ")) {
