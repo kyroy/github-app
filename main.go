@@ -133,6 +133,19 @@ func handleRun(client *github.Client, evt github.CheckRunEvent) error {
 
 	switch evt.GetAction() {
 	case "created":
+		switch evt.CheckRun.GetStatus() {
+		case "queued":
+			if err := github2.UpdateCheckRun(client, evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), runID, name, github2.InProgress, github2.None,
+				&github.CheckRunOutput{
+					Title:   &name,                    // *
+					Summary: github.String("running"), // *
+				}); err != nil {
+				return fmt.Errorf("failed to set %d to in_progress: %v", runID, err)
+			}
+		default:
+			return fmt.Errorf("unknown status %s for action \"created\"", evt.CheckRun.GetStatus())
+		}
+
 	case "rerequested":
 		_, err := github2.CreateCheckRun(client,
 			evt.Repo.Owner.GetLogin(),
@@ -140,19 +153,12 @@ func handleRun(client *github.Client, evt github.CheckRunEvent) error {
 			evt.CheckRun.CheckSuite.GetHeadBranch(),
 			evt.CheckRun.GetHeadSHA(),
 			name,
-			github2.Queued)
+			github2.InProgress)
 		if err != nil {
-			return fmt.Errorf("failed to create setup check_run for %s: %v", name, err)
+			return fmt.Errorf("failed to create check_run for %s: %v", name, err)
 		}
-		return nil
-	}
-	if err := github2.UpdateCheckRun(client, evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), runID, name, github2.InProgress, github2.None,
-		&github.CheckRunOutput{
-			Title:       &name,                    // *
-			Summary:     github.String("running"), // *
-			Annotations: []*github.CheckRunAnnotation{},
-		}); err != nil {
-		return fmt.Errorf("failed to set %d to in_progress: %v", runID, err)
+	default:
+		return fmt.Errorf("unknown action %s", evt.GetAction())
 	}
 
 	// TODO use context!!!
