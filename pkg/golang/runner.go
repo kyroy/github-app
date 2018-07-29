@@ -8,6 +8,7 @@ import (
 	"github.com/kyroy/github-app/pkg/config"
 	"github.com/kyroy/github-app/pkg/tests"
 	"github.com/sirupsen/logrus"
+	"github.com/tebeka/go2xunit/lib"
 	"regexp"
 	"strconv"
 	"strings"
@@ -20,38 +21,38 @@ var (
 
 //
 // version -> stage -> results, version -> message, error
-func TestGoRepo(config *config.Config, URL, commit string) (tests.Results, map[string]string, error) {
-	commands := []string{
-		"go version",
-		fmt.Sprintf("mkdir -p $GOPATH/src/%s", config.GoImportPath()),
-		fmt.Sprintf("cd $GOPATH/src/%s", config.GoImportPath()),
-		fmt.Sprintf("git clone -q %s .", URL),
-		fmt.Sprintf("git checkout -q %s", commit),
-		"echo '### setup'",
-	}
-	commands = append(commands, config.SetupCommands()...)
-	for stage, cmds := range config.TestCommands() {
-		commands = append(commands, fmt.Sprintf("echo '### %s'", stage))
-		commands = append(commands, cmds...)
-	}
-
-	cl, err := docker.NewClient("unix:///var/run/docker.sock")
-	if err != nil {
-		logrus.Errorf("failed to create docker client: %v", err)
-		return nil, nil, fmt.Errorf("internal server error")
-	}
-	d := dexec.Docker{Client: cl}
-
-	result := make(tests.Results)
-	messages := make(map[string]string)
-	for i, version := range config.Versions() {
-		if err := cl.PullImage(docker.PullImageOptions{Repository: config.DockerImage(), Tag: config.Tags()[i]}, docker.AuthConfiguration{}); err != nil {
-			logrus.Errorf("failed to pull image %s: %v", version, err)
-		}
-		result[version], messages[version] = testGoVersion(&d, version, commands)
-	}
-	return result, messages, nil
-}
+//func TestGoRepo(config *config.Config, URL, commit string) (tests.Results, map[string]string, error) {
+//	commands := []string{
+//		"go version",
+//		fmt.Sprintf("mkdir -p $GOPATH/src/%s", config.GoImportPath()),
+//		fmt.Sprintf("cd $GOPATH/src/%s", config.GoImportPath()),
+//		fmt.Sprintf("git clone -q %s .", URL),
+//		fmt.Sprintf("git checkout -q %s", commit),
+//		"echo '### setup'",
+//	}
+//	commands = append(commands, config.SetupCommands()...)
+//	for stage, cmds := range config.TestCommands() {
+//		commands = append(commands, fmt.Sprintf("echo '### %s'", stage))
+//		commands = append(commands, cmds...)
+//	}
+//
+//	cl, err := docker.NewClient("unix:///var/run/docker.sock")
+//	if err != nil {
+//		logrus.Errorf("failed to create docker client: %v", err)
+//		return nil, nil, fmt.Errorf("internal server error")
+//	}
+//	d := dexec.Docker{Client: cl}
+//
+//	result := make(tests.Results)
+//	messages := make(map[string]string)
+//	for i, version := range config.Versions() {
+//		if err := cl.PullImage(docker.PullImageOptions{Repository: config.DockerImage(), Tag: config.Tags()[i]}, docker.AuthConfiguration{}); err != nil {
+//			logrus.Errorf("failed to pull image %s: %v", version, err)
+//		}
+//		result[version], messages[version] = testGoVersion(&d, version, commands)
+//	}
+//	return result, messages, nil
+//}
 
 func TestGoVersion(config *config.Config, URL, commit, image string) (tests.StageResults, string, error) {
 	commands := []string{
@@ -123,6 +124,10 @@ func parseTestResults(testLog []byte) map[string][]*tests.Result {
 	lines := bytes.Split(testLog, []byte{'\n'})
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
+		if bytes.HasPrefix(line, []byte("### go test")) {
+			suites, err := lib.ParseGotest(bytes.NewReader(bytes.Join(lines[i+1:], []byte{'\n'})), "")
+			fmt.Println("sssss", suites, err)
+		}
 		if bytes.HasPrefix(line, []byte("### ")) {
 			stage := string(bytes.TrimPrefix(line, []byte("### ")))
 			findings[stage], i = parseStage(lines, i+1)
