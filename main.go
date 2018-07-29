@@ -113,17 +113,17 @@ func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 	runIDs := make(map[string]map[string]int64)
 	for _, version := range config.Versions() {
 		runIDs[version] = make(map[string]int64)
-		//d, err := github2.CreateCheckRun(client,
-		//	evt.Repo.Owner.GetLogin(),
-		//	evt.Repo.GetName(),
-		//	evt.CheckSuite.GetHeadBranch(),
-		//	evt.CheckSuite.GetHeadSHA(),
-		//	fmt.Sprintf("%s: setup", version))
-		//if err != nil {
-		//	logrus.Errorf("failed to create setup check_run: %v", err)
-		//	continue
-		//}
-		//runIDs[version]["setup"] = d
+		d, err := github2.CreateCheckRun(client,
+			evt.Repo.Owner.GetLogin(),
+			evt.Repo.GetName(),
+			evt.CheckSuite.GetHeadBranch(),
+			evt.CheckSuite.GetHeadSHA(),
+			fmt.Sprintf("%s: setup", version))
+		if err != nil {
+			logrus.Errorf("failed to create setup check_run: %v", err)
+			continue
+		}
+		runIDs[version]["setup"] = d
 		for stage := range config.TestCommands() {
 			d, err := github2.CreateCheckRun(client,
 				evt.Repo.Owner.GetLogin(),
