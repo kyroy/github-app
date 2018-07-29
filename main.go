@@ -138,6 +138,7 @@ func handleRun(client *github.Client, evt github.CheckRunEvent) error {
 	// TODO use context!!!
 	ctx, _ := context.WithTimeout(context.Background(), 15*time.Minute)
 	go func(ctx context.Context) {
+		time.Sleep(30 * time.Second)
 		results, message, err := golang.TestGoVersion(config, evt.Repo.GetCloneURL(), evt.CheckRun.GetHeadSHA(), name)
 		if err != nil {
 			logrus.Errorf("testGoRepo failed: %v", err)
