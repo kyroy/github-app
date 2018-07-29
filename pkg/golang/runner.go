@@ -75,11 +75,7 @@ func testGoVersion(d *dexec.Docker, image string, commands []string) (map[string
 		msg = fmt.Sprintf("execution failed with: %s%s", strings.TrimPrefix(err.Error(), "dexec: "), msg)
 	}
 	logrus.Infof(msg)
-	results := parseTestResults(b)
-	for _, res := range results {
-		logrus.Infof("- %v", res)
-	}
-	return results, msg
+	return parseTestResults(b), msg
 }
 
 
@@ -92,7 +88,7 @@ func parseTestResults(testLog []byte) map[string][]*tests.Result {
 		line := lines[i]
 		if bytes.HasPrefix(line, []byte("### ")) {
 			stage := string(bytes.TrimPrefix(line, []byte("### ")))
-			findings[stage], i = parseStage(lines, i)
+			findings[stage], i = parseStage(lines, i+1)
 		}
 	}
 	return findings
@@ -109,7 +105,6 @@ func parseStage(lines [][]byte, i int) ([]*tests.Result, int) {
 		results := re.FindSubmatch(line)
 		res, err := newTestResult(results)
 		if err != nil {
-			logrus.Errorf("created invalid test result %v: %v", res, err)
 			continue
 		}
 		findings = append(findings, res)

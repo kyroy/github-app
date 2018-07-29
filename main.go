@@ -43,6 +43,14 @@ func main() {
 	//test()
 	//fmt.Printf("\n\n\n")
 	//testGoRepo()
+
+	//results, messages, err := golang.TestGoRepo(&config2.Config{
+	//	Language: "go",
+	//	Versions: []string{"golang:1.10"},
+	//	GoImportPath: "github.com/Kyroy/testrepo",
+	//}, "https://github.com/Kyroy/testrepo.git", "eb041cb31ee1df478bba2194a48e0ce19b42e4e9")
+	//fmt.Println(results, messages, err)
+	
 	http.HandleFunc("/", handler)
 
 	logrus.Infof("listening on 8080")
