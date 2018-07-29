@@ -131,6 +131,21 @@ func handleRun(client *github.Client, evt github.CheckRunEvent) error {
 	runID := evt.CheckRun.GetID()
 	name := evt.CheckRun.GetName()
 
+	switch evt.GetAction() {
+	case "created":
+	case "rerequested":
+		_, err := github2.CreateCheckRun(client,
+			evt.Repo.Owner.GetLogin(),
+			evt.Repo.GetName(),
+			evt.CheckRun.CheckSuite.GetHeadBranch(),
+			evt.CheckRun.GetHeadSHA(),
+			name,
+			github2.Queued)
+		if err != nil {
+			return fmt.Errorf("failed to create setup check_run for %s: %v", name, err)
+		}
+		return nil
+	}
 	if err := github2.UpdateCheckRun(client, evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), runID, name, github2.InProgress, github2.None,
 		&github.CheckRunOutput{
 			Title:       &name,                    // *
