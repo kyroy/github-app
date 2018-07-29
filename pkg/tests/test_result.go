@@ -40,5 +40,8 @@ func (r Results) Annotations(version, owner, repo, sha string) ([]*github.CheckR
 		}
 	}
 	logrus.Debugf("[%s] annotations: %v", version, annotations)
+	for _, a := range annotations {
+		logrus.Debugf(" - %s: %s", a.Title, a)
+	}
 	return annotations, nil
 }
