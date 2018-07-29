@@ -178,14 +178,17 @@ func handleRun(client *github.Client, evt github.CheckRunEvent) error {
 
 func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 	logrus.Infof("check_suite - status %s, action: %s", evt.CheckSuite.GetStatus(), evt.GetAction())
-	switch evt.CheckSuite.GetStatus() {
-	case "queued":
-		switch evt.GetAction() {
-		case "created":
-		case "rerequested":
+	switch evt.GetAction() {
+	case "created":
+		switch evt.CheckSuite.GetStatus() {
+		case "queued":
 		default:
 			return nil
 		}
+	case "rerequested":
+		//switch evt.CheckSuite.GetStatus() {
+		//
+		//}
 	default:
 		return nil
 	}
