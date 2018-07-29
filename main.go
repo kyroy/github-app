@@ -36,6 +36,7 @@ func test() {
 }
 
 func main() {
+	logrus.SetLevel(logrus.DebugLevel)
 	//setSuiteProgress("Kyroy", "testrepo", "Kyroy-patch-1", "11621bbd1f7ef7ab05156563fc3ab9d663b8a0c", 7719827)
 	//setRunCompleted("Kyroy", "testrepo", "Kyroy-patch-1", "11621bbd1f7ef7ab05156563fc3ab9d663b8a0c", 9669759)
 	//test()
