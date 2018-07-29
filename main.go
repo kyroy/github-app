@@ -118,7 +118,7 @@ func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 			evt.Repo.GetName(),
 			evt.CheckSuite.GetHeadBranch(),
 			evt.CheckSuite.GetHeadSHA(),
-			version)
+			fmt.Sprintf("%s: setup", version))
 		if err != nil {
 			logrus.Errorf("failed to create setup check_run: %v", err)
 			continue
@@ -130,7 +130,7 @@ func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 				evt.Repo.GetName(),
 				evt.CheckSuite.GetHeadBranch(),
 				evt.CheckSuite.GetHeadSHA(),
-				version)
+				fmt.Sprintf("%s: %s", version, stage))
 			if err != nil {
 				logrus.Errorf("failed to create %s check_run: %v", stage, err)
 				continue
