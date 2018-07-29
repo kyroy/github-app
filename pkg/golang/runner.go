@@ -74,9 +74,9 @@ func testGoVersion(d *dexec.Docker, image string, commands []string) (map[string
 		if msg != "" {
 			msg = " - " + msg
 		}
-		msg = fmt.Sprintf("[%s] execution failed with: %s%s", image, strings.TrimPrefix(err.Error(), "dexec: "), msg)
+		msg = fmt.Sprintf("execution failed with: %s%s", strings.TrimPrefix(err.Error(), "dexec: "), msg)
 	}
-	logrus.Infof(msg)
+	logrus.Infof("[%s] %s", image, msg)
 	if logrus.GetLevel() == logrus.DebugLevel {
 		logrus.Debugf("[%s] testLog ----------------")
 		fmt.Printf("%s\n----------------\n", b)

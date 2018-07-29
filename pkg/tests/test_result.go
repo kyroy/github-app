@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"github.com/google/go-github/github"
+	"github.com/sirupsen/logrus"
 )
 
 type Result struct {
@@ -26,6 +27,7 @@ func (r Results) Annotations(version, owner, repo, sha string) ([]*github.CheckR
 	var annotations []*github.CheckRunAnnotation
 	for stage, results := range versionResults {
 		for _, res := range results {
+			logrus.Debugf("[%s] %s: %v", version, stage, res)
 			annotations = append(annotations, &github.CheckRunAnnotation{
 				Title:        github.String(stage),
 				Message:      &res.Message,
