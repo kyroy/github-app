@@ -148,7 +148,7 @@ func parseGoTest(lines [][]byte, i int, importPath string) ([]*tests.Result, int
 			fmt.Printf("%d suite %s, %s, %s\n", a, suite.Name, suite.Status, suite.Time)
 			for b, test := range suite.Tests {
 				fmt.Printf("  %d test %s, %v, %s, %s\n", b, test.Name, test.Status, test.Time, test.Message)
-				reResults := re.FindSubmatch([]byte(fmt.Sprintf("%s/%s", strings.TrimPrefix(strings.TrimPrefix(suite.Name, importPath), "/"), strings.TrimSpace(test.Message))))
+				reResults := re.FindSubmatch([]byte(fmt.Sprintf("%s%s", buildFilePathPrefix(suite.Name, importPath), strings.TrimSpace(test.Message))))
 				res, err := newTestResult(reResults)
 				if err != nil {
 					continue
@@ -159,6 +159,14 @@ func parseGoTest(lines [][]byte, i int, importPath string) ([]*tests.Result, int
 		}
 	}
 	return results, j - 1
+}
+
+func buildFilePathPrefix(suiteName, importPath string) string {
+	s := strings.TrimPrefix(strings.TrimPrefix(suiteName, importPath), "/")
+	if s == "" {
+		return s
+	}
+	return fmt.Sprintf("%s/", s)
 }
 
 func parseStage(lines [][]byte, i int) ([]*tests.Result, int) {
