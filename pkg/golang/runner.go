@@ -68,6 +68,8 @@ func TestGoVersion(config *config.Config, URL, commit, image string) (tests.Stag
 		commands = append(commands, fmt.Sprintf("echo '### %s'", stage))
 		commands = append(commands, cmds...)
 	}
+	fmt.Println("config.TestCommands()", config.TestCommands())
+	fmt.Println("commands", commands)
 
 	cl, err := docker.NewClient("unix:///var/run/docker.sock")
 	if err != nil {
