@@ -125,23 +125,41 @@ func parseTestResults(testLog []byte) map[string][]*tests.Result {
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
 		if bytes.HasPrefix(line, []byte("### go test")) {
-			suites, err := lib.ParseGotest(bytes.NewReader(bytes.Join(lines[i+1:], []byte{'\n'})), "")
-			fmt.Println("sssss", suites, err)
-			if err == nil {
-				for a, suite := range suites {
-					fmt.Printf("%d suite %s, %s, %s\n", a, suite.Name, suite.Status, suite.Time)
-					for b, test := range suite.Tests {
-						fmt.Printf("  %d test %s, %v, %s, %s\n", b, test.Name, test.Status, test.Time, test.Message)
-					}
-				}
-			}
-		}
-		if bytes.HasPrefix(line, []byte("### ")) {
+			findings["go test"], i = parseGoTest(lines, i+1)
+		} else if bytes.HasPrefix(line, []byte("### ")) {
 			stage := string(bytes.TrimPrefix(line, []byte("### ")))
 			findings[stage], i = parseStage(lines, i+1)
 		}
 	}
 	return findings
+}
+
+func parseGoTest(lines [][]byte, i int) ([]*tests.Result, int) {
+	j := i
+	for ; j < len(lines); j++ {
+		if bytes.HasPrefix(lines[j], []byte("### ")) {
+			break
+		}
+	}
+	var results []*tests.Result
+	suites, err := lib.ParseGotest(bytes.NewReader(bytes.Join(lines[i:j], []byte{'\n'})), "")
+	if err == nil {
+		for a, suite := range suites {
+			fmt.Printf("%d suite %s, %s, %s\n", a, suite.Name, suite.Status, suite.Time)
+			for b, test := range suite.Tests {
+				fmt.Printf("  %d test %s, %v, %s, %s\n", b, test.Name, test.Status, test.Time, test.Message)
+
+				reResults := re.FindSubmatch([]byte(test.Message))
+				res, err := newTestResult(reResults)
+				if err != nil {
+					continue
+				}
+				res.Message = fmt.Sprintf("%s %s: %s", suite.Name, test.Name, res.Message)
+				results = append(results, res)
+			}
+		}
+	}
+	return results, j - 1
 }
 
 func parseStage(lines [][]byte, i int) ([]*tests.Result, int) {
