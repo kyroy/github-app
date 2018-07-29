@@ -64,9 +64,9 @@ func TestGoVersion(config *config.Config, URL, commit, image string) (tests.Stag
 		"echo '### setup'",
 	}
 	commands = append(commands, config.SetupCommands()...)
-	for stage, cmds := range config.TestCommands() {
-		commands = append(commands, fmt.Sprintf("echo '### %s'", stage))
-		commands = append(commands, cmds...)
+	for _, stage := range config.TestCommands() {
+		commands = append(commands, fmt.Sprintf("echo '### %s'", stage.Name))
+		commands = append(commands, stage.Commands...)
 	}
 	fmt.Println("config.TestCommands()", config.TestCommands())
 	fmt.Println("commands", commands)

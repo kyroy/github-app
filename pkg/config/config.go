@@ -2,11 +2,16 @@ package config
 
 import "fmt"
 
+type TestConfig struct {
+	Name     string   `yaml:"name"`
+	Commands []string `yaml:"commands"`
+}
+
 type hiddenConfig struct {
-	Language string              `yaml:"language"`
-	Versions []string            `yaml:"versions"`
-	Setup    []string            `yaml:"setup,omitempty"`
-	Tests    map[string][]string `yaml:"tests,omitempty"`
+	Language string        `yaml:"language"`
+	Versions []string      `yaml:"versions"`
+	Setup    []string      `yaml:"setup,omitempty"`
+	Tests    []*TestConfig `yaml:"tests,omitempty"`
 	// go
 	GoImportPath string `yaml:"go_import_path,omitempty"`
 }
@@ -61,18 +66,26 @@ func (c Config) SetupCommands() []string {
 	return nil
 }
 
-func (c Config) TestCommands() map[string][]string {
+func (c Config) TestCommands() []*TestConfig {
 	if len(c.hidden.Tests) > 0 {
 		return c.hidden.Tests
 	}
 	switch c.hidden.Language {
 	case "go":
-		return map[string][]string{
-			"golint": {
-				"go get -u golang.org/x/lint/golint",
-				fmt.Sprintf(`golint $(go list ./...) | sed 's/'$(echo $GOPATH/src/%s/ | sed 's/\//\\\//g')'//g'`, c.GoImportPath()),
+		return []*TestConfig{
+			{
+				Name: "golint",
+				Commands: []string{
+					"go get -u golang.org/x/lint/golint",
+					fmt.Sprintf(`golint $(go list ./...) | sed 's/'$(echo $GOPATH/src/%s/ | sed 's/\//\\\//g')'//g'`, c.GoImportPath()),
+				},
 			},
-			"go test": {"go test -v ./... 2>&1"},
+			{
+				Name: "go test",
+				Commands: []string{
+					"go test -v ./... 2>&1",
+				},
+			},
 		}
 	}
 	return nil
