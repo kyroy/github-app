@@ -33,8 +33,9 @@ func CreateCheckRun(client *github.Client, owner, repo, branch, sha, name string
 	return checkRun.GetID(), nil
 }
 
-func UpdateCheckRun(client *github.Client, owner, repo string, checkRunID int64, conclusion Conclusion, title, summary string, text *string, annotations []*github.CheckRunAnnotation) error {
+func UpdateCheckRun(client *github.Client, owner, repo string, checkRunID int64, name, title, summary string, text *string, conclusion Conclusion, annotations []*github.CheckRunAnnotation) error {
 	_, _, err := client.Checks.UpdateCheckRun(context.Background(), owner, repo, checkRunID, github.UpdateCheckRunOptions{
+		Name: name,
 		CompletedAt: &github.Timestamp{Time: time.Now()},
 		Conclusion: github.String(string(conclusion)),
 		Output: &github.CheckRunOutput{

@@ -161,10 +161,12 @@ func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 					conclusion = github2.Failure
 				}
 				logrus.Infof("[%d] %s %s: %s", runID, version, stage, conclusion)
-				err = github2.UpdateCheckRun(client,  evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), runID, conclusion,
+				err = github2.UpdateCheckRun(client,  evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), runID,
+					fmt.Sprintf("%s: %s", version, stage),
 					fmt.Sprintf("%s: %s", version, stage), // title,
 					messages[version], // summary
 					github.String("beautiful test"), // text
+					conclusion,
 					annotations)
 				if err != nil {
 					logrus.Errorf("failed to update check_run %s: %v", runID, err)
