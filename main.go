@@ -200,6 +200,8 @@ func handleRun(client *github.Client, evt github.CheckRunEvent) error {
 func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 	logrus.Infof("check_suite - status %s, action: %s", evt.CheckSuite.GetStatus(), evt.GetAction())
 	switch evt.GetAction() {
+	case "requested":
+		fallthrough
 	case "created":
 		switch evt.CheckSuite.GetStatus() {
 		case "queued":
