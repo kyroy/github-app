@@ -178,9 +178,20 @@ func handleRun(client *github.Client, evt github.CheckRunEvent) error {
 
 func handleSuite(client *github.Client, evt github.CheckSuiteEvent) error {
 	logrus.Infof("check_suite - status %s, action: %s", evt.CheckSuite.GetStatus(), evt.GetAction())
-	if evt.CheckSuite.GetStatus() != "queued" || evt.GetAction() != "created" {
+	switch evt.CheckSuite.GetStatus() {
+	case "queued":
+		switch evt.GetAction() {
+		case "created":
+		case "rerequested":
+		default:
+			return nil
+		}
+	default:
 		return nil
 	}
+	//if evt.CheckSuite.GetStatus() != "queued" || evt.GetAction() != "created" {
+	//	return nil
+	//}
 
 	config, err := config2.Download(client, evt.Repo.Owner.GetLogin(), evt.Repo.GetName(), evt.CheckSuite.GetHeadBranch())
 	if err != nil {
