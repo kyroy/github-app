@@ -127,6 +127,14 @@ func parseTestResults(testLog []byte) map[string][]*tests.Result {
 		if bytes.HasPrefix(line, []byte("### go test")) {
 			suites, err := lib.ParseGotest(bytes.NewReader(bytes.Join(lines[i+1:], []byte{'\n'})), "")
 			fmt.Println("sssss", suites, err)
+			if err == nil {
+				for a, suite := range suites {
+					fmt.Printf("%d suite %s, %s, %s\n", a, suite.Name, suite.Status, suite.Time)
+					for b, test := range suite.Tests {
+						fmt.Printf("  %d test %s, %v, %s, %s\n", b, test.Name, test.Status, test.Time, test.Message)
+					}
+				}
+			}
 		}
 		if bytes.HasPrefix(line, []byte("### ")) {
 			stage := string(bytes.TrimPrefix(line, []byte("### ")))
