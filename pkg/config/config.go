@@ -62,7 +62,7 @@ func (c Config) TestCommands() map[string][]string {
 		return map[string][]string{
 			"golint":  {
 				"go get -u golang.org/x/lint/golint",
-				fmt.Sprintf(`golint $(go list ./...) | sed 's/'$(echo $GOPATH/src/%s/ | sed 's/\//\\\//g')'//g'`, c.hidden.GoImportPath),
+				fmt.Sprintf(`golint $(go list ./...) | sed 's/'$(echo $GOPATH/src/%s/ | sed 's/\//\\\//g')'//g'`, c.GoImportPath()),
 			},
 			"go test": {"go test -v ./..."},
 		}

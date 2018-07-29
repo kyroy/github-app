@@ -24,8 +24,8 @@ var (
 func TestGoRepo(config *config.Config, URL, commit string) (tests.Results, map[string]string, error) {
 	commands := []string{
 		"go version",
-		fmt.Sprintf("mkdir -p $GOPATH/src/%s", config.GoImportPath),
-		fmt.Sprintf("cd $GOPATH/src/%s", config.GoImportPath),
+		fmt.Sprintf("mkdir -p $GOPATH/src/%s", config.GoImportPath()),
+		fmt.Sprintf("cd $GOPATH/src/%s", config.GoImportPath()),
 		fmt.Sprintf("git clone -q %s .", URL),
 		fmt.Sprintf("git checkout -q %s", commit),
 		"echo '### setup'",
