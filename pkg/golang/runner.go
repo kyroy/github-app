@@ -84,14 +84,14 @@ func TestGoVersion(config *config.Config, URL, commit, image string) (tests.Stag
 	if err := cl.PullImage(docker.PullImageOptions{Repository: config.DockerImage(), Tag: tag}, docker.AuthConfiguration{}); err != nil {
 		logrus.Errorf("failed to pull image %s:%s: %v", config.DockerImage(), tag, err)
 	}
-	stageResults, message := testGoVersion(&d, image, commands)
+	stageResults, message := testGoVersion(&d, image, config.GoImportPath(), commands)
 
 	return stageResults, message, nil
 }
 
 //
 // stage -> results, message
-func testGoVersion(d *dexec.Docker, image string, commands []string) (map[string][]*tests.Result, string) {
+func testGoVersion(d *dexec.Docker, image, importPath string, commands []string) (map[string][]*tests.Result, string) {
 	m, err := dexec.ByCreatingContainer(docker.CreateContainerOptions{
 		Config: &docker.Config{Image: image},
 	})
@@ -116,16 +116,16 @@ func testGoVersion(d *dexec.Docker, image string, commands []string) (map[string
 	if logrus.GetLevel() == logrus.DebugLevel {
 		fmt.Printf("[%s] testLog ----------------\n%s\n----------------\n", image, b)
 	}
-	return parseTestResults(b), msg
+	return parseTestResults(b, importPath), msg
 }
 
-func parseTestResults(testLog []byte) map[string][]*tests.Result {
+func parseTestResults(testLog []byte, importPath string) map[string][]*tests.Result {
 	findings := make(map[string][]*tests.Result)
 	lines := bytes.Split(testLog, []byte{'\n'})
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
 		if bytes.HasPrefix(line, []byte("### go test")) {
-			findings["go test"], i = parseGoTest(lines, i+1)
+			findings["go test"], i = parseGoTest(lines, i+1, importPath)
 		} else if bytes.HasPrefix(line, []byte("### ")) {
 			stage := string(bytes.TrimPrefix(line, []byte("### ")))
 			findings[stage], i = parseStage(lines, i+1)
@@ -134,7 +134,7 @@ func parseTestResults(testLog []byte) map[string][]*tests.Result {
 	return findings
 }
 
-func parseGoTest(lines [][]byte, i int) ([]*tests.Result, int) {
+func parseGoTest(lines [][]byte, i int, importPath string) ([]*tests.Result, int) {
 	j := i
 	for ; j < len(lines); j++ {
 		if bytes.HasPrefix(lines[j], []byte("### ")) {
@@ -149,7 +149,7 @@ func parseGoTest(lines [][]byte, i int) ([]*tests.Result, int) {
 			for b, test := range suite.Tests {
 				fmt.Printf("  %d test %s, %v, %s, %s\n", b, test.Name, test.Status, test.Time, test.Message)
 
-				reResults := re.FindSubmatch([]byte(test.Message))
+				reResults := re.FindSubmatch([]byte(fmt.Sprintf("%s/%s", strings.Trim(suite.Name, importPath), test.Message)))
 				res, err := newTestResult(reResults)
 				if err != nil {
 					continue
