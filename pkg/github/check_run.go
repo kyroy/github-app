@@ -28,13 +28,22 @@ var (
 )
 
 //
-func CreateCheckRun(client *github.Client, owner, repo, branch, sha, name string, status Status) (int64, error) {
+func CreateCheckRun(client *github.Client, owner, repo, branch, sha, name string, status Status, conclusion Conclusion, output *github.CheckRunOutput) (int64, error) {
+	var timestamp *github.Timestamp
+	if status == Completed {
+		timestamp = &github.Timestamp{Time: time.Now()}
+	} else if output != nil || conclusion != None {
+		return 0, fmt.Errorf("conclusion or output set but status not completed")
+	}
 	checkRun, _, err := client.Checks.CreateCheckRun(context.Background(), owner, repo, github.CreateCheckRunOptions{
-		Name:       name,   // *
-		HeadBranch: branch, // *
-		HeadSHA:    sha,    // *
-		Status:     status,
-		StartedAt:  &github.Timestamp{Time: time.Now()},
+		Name:        name, // *
+		Status:      status,
+		Conclusion:  conclusion,
+		HeadBranch:  branch, // *
+		HeadSHA:     sha,    // *
+		StartedAt:   &github.Timestamp{Time: time.Now()},
+		CompletedAt: timestamp,
+		Output:      output,
 	})
 	if err != nil {
 		return 0, fmt.Errorf("failed to create check_run: %v", err)

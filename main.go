@@ -9,6 +9,7 @@ import (
 	config2 "github.com/kyroy/github-app/pkg/config"
 	github2 "github.com/kyroy/github-app/pkg/github"
 	"github.com/kyroy/github-app/pkg/golang"
+	"github.com/kyroy/github-app/pkg/ratelimit"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"time"
@@ -106,6 +107,37 @@ func handleRun(client *github.Client, evt github.CheckRunEvent) error {
 	name := evt.CheckRun.GetName()
 
 	switch evt.GetAction() {
+	case "rerequested":
+		if err := ratelimit.Request(evt.Repo.Owner.GetID()); err != nil {
+			runID, err = github2.CreateCheckRun(client,
+				evt.Repo.Owner.GetLogin(),
+				evt.Repo.GetName(),
+				evt.CheckRun.CheckSuite.GetHeadBranch(),
+				evt.CheckRun.GetHeadSHA(),
+				name,
+				github2.Completed,
+				github2.Neutral,
+				&github.CheckRunOutput{
+					Title:   &name,                      // *
+					Summary: github.String(err.Error()), // *
+				})
+			if err != nil {
+				return fmt.Errorf("failed to create check_run for %s: %v", name, err)
+			}
+			return nil
+		}
+		runID, err = github2.CreateCheckRun(client,
+			evt.Repo.Owner.GetLogin(),
+			evt.Repo.GetName(),
+			evt.CheckRun.CheckSuite.GetHeadBranch(),
+			evt.CheckRun.GetHeadSHA(),
+			name,
+			github2.InProgress,
+			github2.None,
+			nil)
+		if err != nil {
+			return fmt.Errorf("failed to create check_run for %s: %v", name, err)
+		}
 	case "created":
 		switch evt.CheckRun.GetStatus() {
 		case "queued":
@@ -120,17 +152,6 @@ func handleRun(client *github.Client, evt github.CheckRunEvent) error {
 			return fmt.Errorf("unknown status %s for action \"created\"", evt.CheckRun.GetStatus())
 		}
 
-	case "rerequested":
-		runID, err = github2.CreateCheckRun(client,
-			evt.Repo.Owner.GetLogin(),
-			evt.Repo.GetName(),
-			evt.CheckRun.CheckSuite.GetHeadBranch(),
-			evt.CheckRun.GetHeadSHA(),
-			name,
-			github2.InProgress)
-		if err != nil {
-			return fmt.Errorf("failed to create check_run for %s: %v", name, err)
-		}
 	default:
 		return fmt.Errorf("unknown action %s", evt.GetAction())
 	}
@@ -190,16 +211,35 @@ CreateSuite:
 	}
 
 	for _, version := range config.Versions() {
+		if err := ratelimit.Request(evt.Repo.Owner.GetID()); err != nil {
+			_, err = github2.CreateCheckRun(client,
+				evt.Repo.Owner.GetLogin(),
+				evt.Repo.GetName(),
+				evt.CheckSuite.GetHeadBranch(),
+				evt.CheckSuite.GetHeadSHA(),
+				version,
+				github2.Completed,
+				github2.Neutral,
+				&github.CheckRunOutput{
+					Title:   &version,                   // *
+					Summary: github.String(err.Error()), // *
+				})
+			if err != nil {
+				logrus.Errorf("failed to create check_run for %s: %v", version, err)
+			}
+			continue
+		}
 		_, err := github2.CreateCheckRun(client,
 			evt.Repo.Owner.GetLogin(),
 			evt.Repo.GetName(),
 			evt.CheckSuite.GetHeadBranch(),
 			evt.CheckSuite.GetHeadSHA(),
 			version,
-			github2.Queued)
+			github2.Queued,
+			github2.None,
+			nil)
 		if err != nil {
 			logrus.Errorf("failed to create setup check_run for %s: %v", version, err)
-			continue
 		}
 	}
 	return nil
