@@ -116,7 +116,7 @@ func handleRun(client *github.Client, evt github.CheckRunEvent) error {
 				evt.CheckRun.GetHeadSHA(),
 				name,
 				github2.Completed,
-				github2.Neutral,
+				github2.Failure,
 				&github.CheckRunOutput{
 					Title:   &name,                      // *
 					Summary: github.String(err.Error()), // *
@@ -219,7 +219,7 @@ CreateSuite:
 				evt.CheckSuite.GetHeadSHA(),
 				version,
 				github2.Completed,
-				github2.Neutral,
+				github2.Failure,
 				&github.CheckRunOutput{
 					Title:   &version,                   // *
 					Summary: github.String(err.Error()), // *
